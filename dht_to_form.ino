@@ -40,6 +40,9 @@ String str_mac;
 // Generally, you should use "unsigned long" for variables that hold time
 unsigned long previousMillis = 0;            // When the sensor was last read
 const long interval = 60000;                  // Wait this long until reading again
+const long bigInterval = 60000 * 5;
+const long minInterval = 2 * 60 * 1000;
+const long maxInterval = 10 * 60 * 1000;
 
 int id; // ID for this sensor, derived from the MAC.
 
@@ -48,7 +51,6 @@ int get_id() {
 
   WiFi.macAddress(mac);
 
-  
   str_mac += String(mac[5],HEX);
   str_mac += String(":");
   str_mac += String(mac[4],HEX);
