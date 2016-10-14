@@ -43,6 +43,8 @@ unsigned long previousMillis = 0;            // When the sensor was last read
 const long interval = 60000;                  // Wait this long until reading again
 const long minInterval = 2 * 60 * 1000;
 const long maxInterval = 10 * 60 * 1000;
+const long sensorInterval = 10 * 1000;
+unsigned long lastSense = 0;
 
 int id; // ID for this sensor, derived from the MAC.
 
@@ -118,10 +120,10 @@ bool interval_met() {
  * Checks if there's a change in temp or humidity that needs an update.
  */
 bool need_update() {
-  if ((int)(last_sent_humidity * 50) == (int)(avg_humidity * 50))
+  if ((int)(last_sent_humidity * 50) != (int)(avg_humidity * 50))
     return true;
 
-  if ((int)(last_sent_temp * 50) == (int)(avg_temperature * 50))
+  if ((int)(last_sent_temp * 50) != (int)(avg_temperature * 50))
     return true;
 
   return false;
@@ -143,12 +145,12 @@ bool read_sensor() {
   dtostrf(humidity, 1, 2, str_humidity);
   dtostrf(temperature, 1, 2, str_temperature);
 
-  Serial.print("Humidity: ");
+  /*Serial.print("Humidity: ");
   Serial.print(str_humidity);
   Serial.print(" %\t");
   Serial.print("Temperature: ");
   Serial.print(str_temperature);
-  Serial.println(" °C");
+  Serial.println(" °C");*/
   return true;
 }
 
@@ -236,25 +238,37 @@ void setup(void)
 
 void loop(void)
 {
+  unsigned long currentMillis = millis();
 
+  if (currentMillis > lastSense && currentMillis - lastSense < sensorInterval) {
+    return;
+  }
+  lastSense = currentMillis;
   sense();
 
-  unsigned long currentMillis = millis();
   bool timeOverflow = currentMillis < previousMillis;
   unsigned long timeDelta = currentMillis - previousMillis;
 
   bool needUpdate = need_update();
 
 
-  if (!needUpdate && !timeOverflow && timeDelta < maxInterval)
+  if (!needUpdate && !timeOverflow && timeDelta < maxInterval) {
+    Serial.println("No need and too soon to send");
     return;
+  }
 
-  if (needUpdate && !timeOverflow && timeDelta < minInterval)
+  if (needUpdate && !timeOverflow && timeDelta < minInterval) {
+    Serial.println("Need but too soon to send");
     return;
+  }
 
+  Serial.println("will send");
+  
   try_send();
 
-  delay(10000);
+  previousMillis = currentMillis;
+  last_sent_humidity = avg_humidity;
+  last_sent_temp = avg_temperature;
 }
 
 // sensor entry.928714953
