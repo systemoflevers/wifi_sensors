@@ -25,9 +25,10 @@ DHT dht(DHTPIN, DHTTYPE);
 float humidity, temperature;                 // Raw float values from the sensor
 char str_humidity[10], str_temperature[10];  // Rounded  sensor values and as strings
 float avg_humidity, avg_temperature;
+float last_sent_humidity, last_sent_temp;
 char str_avg_humidity[10], str_avg_temperature[10];
 
-const int kWinSize = 20;
+const int kWinSize = 100;
 float humidity_window[kWinSize], temperature_window[kWinSize]; // Sliding window of sensor values
 float humidity_win_sum = 0, temperature_win_sum = 0;
 int samples = 0;
@@ -40,7 +41,6 @@ String str_mac;
 // Generally, you should use "unsigned long" for variables that hold time
 unsigned long previousMillis = 0;            // When the sensor was last read
 const long interval = 60000;                  // Wait this long until reading again
-const long bigInterval = 60000 * 5;
 const long minInterval = 2 * 60 * 1000;
 const long maxInterval = 10 * 60 * 1000;
 
@@ -68,6 +68,9 @@ int get_id() {
   return 0;
 }
 
+/**
+ * Updates the windows for temp and humidity, and computes the new averages.
+ */
 void update_window(float h, float t) {
   if (samples == kWinSize) {
     humidity_win_sum -= humidity_window[next_sample];
@@ -108,6 +111,20 @@ bool interval_met() {
   
   previousMillis = currentMillis;
   return true;
+}
+
+
+/**
+ * Checks if there's a change in temp or humidity that needs an update.
+ */
+bool need_update() {
+  if ((int)(last_sent_humidity * 50) == (int)(avg_humidity * 50))
+    return true;
+
+  if ((int)(last_sent_temp * 50) == (int)(avg_temperature * 50))
+    return true;
+
+  return false;
 }
 
 bool read_sensor() {
@@ -173,14 +190,14 @@ void send_reading() {
   }
   Serial.println("closing connection");
 }
+
+
 void sense() {
   if (read_sensor()) 
     update_window(humidity, temperature);
 }
 
-void sense_and_send() {
-  sense();
-
+void try_send() {
   while (wifiMulti.run() != WL_CONNECTED) {
     Serial.println("Not connected to WiFi.");
     delay(1000);
@@ -188,6 +205,13 @@ void sense_and_send() {
 
   send_reading();
 }
+
+void sense_and_send() {
+  sense();
+  try_send();
+}
+
+
 
 void setup(void)
 {
@@ -212,12 +236,24 @@ void setup(void)
 
 void loop(void)
 {
-  if (interval_met()) {
-    sense_and_send();
-    return;
-  }
 
   sense();
+
+  unsigned long currentMillis = millis();
+  bool timeOverflow = currentMillis < previousMillis;
+  unsigned long timeDelta = currentMillis - previousMillis;
+
+  bool needUpdate = need_update();
+
+
+  if (!needUpdate && !timeOverflow && timeDelta < maxInterval)
+    return;
+
+  if (needUpdate && !timeOverflow && timeDelta < minInterval)
+    return;
+
+  try_send();
+
   delay(10000);
 }
 
