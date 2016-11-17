@@ -36,7 +36,7 @@ ESP8266WiFiMulti wifiMulti;
 
 
 void send(float temp, float hum, float pres) {
-  String url = "/forms/d/e/1FAIpQLSdPAwU5wi7i_ZZMSlCb5Tdjq1O-l8PX9i3l4WFr88XEPP6HRAformResponse?";
+  String url = "/forms/d/e/1FAIpQLSdPAwU5wi7i_ZZMSlCb5Tdjq1O-l8PX9i3l4WFr88XEPP6HRA/formResponse?";
   url = String(url + "entry.1967258850=" + str_mac);
   url = String(url + "entry.668574052=" + temp);
   url = String(url + "entry.1595499712=" + hum);
@@ -46,6 +46,10 @@ void send(float temp, float hum, float pres) {
   Serial.println(url);
 
   String domain = "docs.google.com";
+  if (!https.connect(domain.c_str(), 443)) {
+    Serial.println("connection failed");
+    return;
+  }
   https.print(String("GET ") + url + " HTTP/1.1\r\n" +
               "Host: " + domain + "\r\n" +
               "User-Agent: DHTSensorESP8266\r\n" +
@@ -90,4 +94,9 @@ void setup(void) {
     Serial.println("Not connected to WiFi.");
     delay(1000);
   }
+}
+
+void loop(void) {
+  sense_and_send();
+  delay(5*60000);
 }
