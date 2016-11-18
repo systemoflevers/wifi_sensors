@@ -38,9 +38,9 @@ ESP8266WiFiMulti wifiMulti;
 void send(float temp, float hum, float pres) {
   String url = "/forms/d/e/1FAIpQLSdPAwU5wi7i_ZZMSlCb5Tdjq1O-l8PX9i3l4WFr88XEPP6HRA/formResponse?";
   url = String(url + "entry.1967258850=" + str_mac);
-  url = String(url + "entry.668574052=" + temp);
-  url = String(url + "entry.1595499712=" + hum);
-  url = String(url + "entry.1253295275=" + pres);
+  url = String(url + "&entry.668574052=" + temp);
+  url = String(url + "&entry.1595499712=" + hum);
+  url = String(url + "&entry.1253295275=" + pres);
 
   Serial.print("url: ");
   Serial.println(url);
@@ -70,7 +70,10 @@ void send(float temp, float hum, float pres) {
 void sense_and_send() {
   float temp(NAN), hum(NAN), pres(NAN);
 
-  bme.read(pres, temp, hum, true, 3);
+  // unit: B000 = Pa, B001 = hPa, B010 = Hg, B011 = atm, B100 = bar,
+  //   B101 = torr, B110 = N/m^2, B111 = psi
+  uint8_t pressureUnit(7);
+  bme.read(pres, temp, hum, true, pressureUnit);
 
   send(temp, hum, pres);
 }
@@ -98,5 +101,5 @@ void setup(void) {
 
 void loop(void) {
   sense_and_send();
-  delay(5*60000);
+  delay(1*60000);
 }
