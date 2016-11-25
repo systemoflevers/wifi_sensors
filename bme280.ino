@@ -88,10 +88,7 @@ void setup(void) {
     delay(1000);
   }
 
-  wifiMulti.addAP("GoogleGuest"); // password too if needed
-  wifiMulti.addAP("jessnet", "jesselovesjessica");
-  wifiMulti.addAP("jessnet_tv_2", "jesselovesjessica");
-  wifiMulti.addAP("jessnet-slow", "jesselovesjessica");
+  wifiMulti.addAP("wifi"); // password too if needed
 
   while (wifiMulti.run() != WL_CONNECTED) {
     Serial.println("Not connected to WiFi.");
