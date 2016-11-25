@@ -13,7 +13,7 @@
 
 ESP8266WiFiMulti wifiMulti;
 // Existing WiFi network
-const char* ssid     = "GoogleGuest";
+const char* ssid     = "wifi";
 const char* password = "";
 
 // Initialize DHT sensor
@@ -228,9 +228,6 @@ void setup(void)
 
   // Connect to your WiFi network
   wifiMulti.addAP(ssid); // password too if needed
-  wifiMulti.addAP("jessnet", "jesselovesjessica");
-  wifiMulti.addAP("jessnet_tv_2", "jesselovesjessica");
-  wifiMulti.addAP("jessnet-slow", "jesselovesjessica");
   Serial.print("Connecting");
 
   sense_and_send();
