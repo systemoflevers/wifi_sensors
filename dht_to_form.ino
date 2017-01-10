@@ -166,8 +166,8 @@ void send_reading() {
     Serial.println("connection failed");
     return;
   }
-  // String url = "/forms/d/1H7CHmU7KHQBBgvnAjmgFacooQ8jib-b1XCgQ2_mI39g/formResponse?";
-  String url = "/forms/d/e/1FAIpQLScKaDPsxFOnHd-uxXpHar4DZ78dYbqJWGic27b-Bc1Ihft_JA/formResponse?";
+  
+  String url = "/forms/d/e/YOUR FORM ID/formResponse?";
   url = String(url + "entry.928714953=" + str_mac);
   url = String(url + "&entry.70098726=" + avg_temperature);
   url = String(url + "&entry.2062043784=" + avg_humidity);
